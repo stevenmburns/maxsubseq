@@ -39,11 +39,7 @@ def fast( s):
 
 def fastalt( s):
     def f( x, y):
-#        r, pr = x
-#        pr = max(0,y+pr)
-#        r = max(r,pr)
-#        return r, pr
-        # Walrus operator
+        # Walrus operator, requires Python 3.8
         return max(x[0],(pr:=max(0,y+x[1]))),pr
     r, pr =  functools.reduce( f, s, (0,0))
     return r
