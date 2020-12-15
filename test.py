@@ -43,17 +43,51 @@ def fastalt( s):
 #        pr = max(0,y+pr)
 #        r = max(r,pr)
 #        return r, pr
-        return max(x[0],max(0,y+x[1])),max(0,y+x[1])
+        # Walrus operator
+        return max(x[0],(pr:=max(0,y+x[1]))),pr
     r, pr =  functools.reduce( f, s, (0,0))
     return r
 
+class Associative:
+    def __init__(self, x=0):
+        self.ss = max(0,x)
+        self.ls = max(0,x)
+        self.sr = max(0,x)
+        self.lr = x
+
+    def __repr__(self):
+        return f"({self.ss} {self.ls} {self.sr} {self.lr})"
+
+    def __add__(self, other):
+        result = Associative()
+        result.lr = self.lr + other.lr
+        result.ls = max(self.ls,self.lr + other.ls)
+        result.sr = max(self.sr + other.lr, other.sr)
+        result.ss = max(self.ss,other.ss,self.sr+other.ls)
+#        print( f"{self} + {other} => {result}")
+        return result
+
+def linear_associative( s):
+    def tree( s):
+        l = len(s)
+        if l == 1:
+            return s[0]
+        elif l == 0:
+            return Associative(0)
+        else:
+            # walrus operator requires 3.8
+            return tree(s[:(m := l//2)]) + tree(s[m:])
+
+    return tree([ Associative( x) for x in s]).ss
+
 def cmp( s):
     f = fast(s)
-    print( s, f)
-    return ref(s) == f
-    return quad(s) == f
-    return quad2(s) == f
-    return fastalt(s) == f
+#    print( s, f)
+#    assert ref(s) == f
+#    assert quad(s) == f
+#    assert quad2(s) == f
+    assert fastalt(s) == f
+    assert linear_associative(s) == f
 
 def test_A():
     assert 0 == ref([])
@@ -64,19 +98,22 @@ def test_A():
     assert 2 == ref([1,0,1,-1,0,1])
 
 def test_B():
-    assert cmp([])
-    assert cmp([1])
-    assert cmp([-1])
-    assert cmp([1,-1])
-    assert cmp([-1,1])
-    assert cmp([2,-1,1,1])
-    assert cmp([1,1,-1,2])
-    assert cmp([1,0,1,-1,0,1])
+    cmp([])
+    cmp([1])
+    cmp([-1])
+    cmp([1,-1])
+    cmp([-1,1])
+    cmp([2,-1,1,1])
+    cmp([1,1,-1,2])
+    cmp([1,0,1,-1,0,1])
+    cmp([80, -62, 66, -80, -85, 33, -96, 12, -80, -1])
 
 def test_C():
-    for i in range(10):
-        lst = []
-        for j in range(10):
-            lst.append( random.randint( -100, 100))
-        assert cmp( lst)
+    number_of_trials = 10000
+    size_of_list = 100
+    b = 100
+    for _ in range(number_of_trials):
+        lst = [random.randint( -b, b) for _ in range(size_of_list)]
+        cmp( lst)
+
 
